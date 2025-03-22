@@ -409,7 +409,7 @@ p.rate > span {
   align-items: center;
 }
 .hidden {
-  display: none;
+  display: none !important;
 }
 .search-container {
   display: flex;
@@ -448,7 +448,7 @@ p.rate > span {
   grid-template-columns: repeat(5, 200px);
   gap: 70px;
 }
-.skeleton-list .thumbnail {
+.thumbnail {
   cursor: auto;
   background: linear-gradient(
     140deg,

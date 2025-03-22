@@ -54,30 +54,35 @@ const options = {
     Authorization: `Bearer ${TMDB_TOKEN}`
   }
 };
-const GETWithAuth = async (url, errorMessage) => {
+const GETWithAuth = async (url) => {
   try {
     const response = await fetch(url, options);
     return await response.json();
   } catch (error) {
-    if (error instanceof Error) alert(errorMessage);
+    if (error instanceof Error) throw new Error(error.message);
   }
 };
 const api = {
   async getMovieData(pageNumber) {
     const url = `https://api.themoviedb.org/3/movie/popular?language=ko-KR&region=KR&page=${pageNumber}`;
-    return GETWithAuth(url, ERROR.FAIL_CONNECT);
+    try {
+      return await GETWithAuth(url);
+    } catch (error) {
+      if (error instanceof Error) throw new Error(ERROR.FAIL_CONNECT);
+    }
   },
   async getSearchData(pageNumber, query) {
+    const url = `https://api.themoviedb.org/3/search/movie?page=${pageNumber}&query=${query}&language=ko-KR`;
     try {
-      const url = `https://api.themoviedb.org/3/search/movie?page=${pageNumber}&query=${query}&language=ko-KR`;
-      return GETWithAuth(url, ERROR.FAIL_CONNECT);
+      return await GETWithAuth(url);
     } catch (error) {
-      if (error instanceof Error) alert(error.message);
+      if (error instanceof Error) throw new Error(ERROR.FAIL_CONNECT);
     }
   }
 };
 const IMG_PREFIX = "https://media.themoviedb.org/t/p/w440_and_h660_face";
 const BACKDROP_IMG_PREFIX = "https://image.tmdb.org/t/p/w1920_and_h800_multi_faces";
+const MOVIE_AMOUNT_IN_PAGE = 20;
 class MovieItem {
   constructor({ title, vote_average, poster_path }) {
     __privateAdd(this, _title);
@@ -96,6 +101,7 @@ class MovieItem {
         <img
         class="thumbnail"
         src=${IMG_PREFIX + __privateGet(this, _posterPath)}
+        onload="this.src='${IMG_PREFIX + __privateGet(this, _posterPath)}"
         onerror="this.src='./images/null_image.png'"
         alt=${__privateGet(this, _title)}
         />
@@ -115,22 +121,12 @@ class MovieItem {
 _title = new WeakMap();
 _rate = new WeakMap();
 _posterPath = new WeakMap();
-const toggleNoThumbnail = (option) => {
-  const noThumbnail = document.querySelector(".no-thumbnail");
-  if (option === "show") noThumbnail == null ? void 0 : noThumbnail.classList.remove("hidden");
-  if (option === "hidden") noThumbnail == null ? void 0 : noThumbnail.classList.add("hidden");
+const DOM = {
+  $noThumbnail: document.querySelector(".no-thumbnail")
 };
-const toggleSkeletonList = (option) => {
-  const skeletonUlElement = document.querySelector(
-    ".skeleton-list"
-  );
-  if (option === "show") skeletonUlElement.style.display = "grid";
-  if (option === "hidden") skeletonUlElement.style.display = "none";
-};
-const toggleSeeMoreButton = (option) => {
-  const seeMoreButton2 = document.querySelector("#seeMore");
-  if (option === "show") seeMoreButton2.classList.remove("hidden");
-  if (option === "hidden") seeMoreButton2.classList.add("hidden");
+const toggleVisibility = (element, option) => {
+  if (option === "show") element == null ? void 0 : element.classList.remove("hidden");
+  if (option === "hidden") element == null ? void 0 : element.classList.add("hidden");
 };
 class SearchBar {
   constructor() {
@@ -152,8 +148,7 @@ class SearchBar {
       "#seeMore"
     );
     __privateMethod(this, _SearchBar_instances, changeTitleStyle_fn).call(this, query);
-    toggleNoThumbnail("hidden");
-    toggleSkeletonList("show");
+    toggleVisibility(DOM.$noThumbnail, "hidden");
     thumbnailList2 == null ? void 0 : thumbnailList2.replaceChildren();
     await __privateMethod(this, _SearchBar_instances, renderSearchResult_fn).call(this, query);
     seeMoreButton2.onclick = async () => {
@@ -206,14 +201,18 @@ changeTitleStyle_fn = function(query) {
 renderSearchResult_fn = async function(query) {
   const thumbnailList2 = document.querySelector("ul.thumbnail-list");
   const itemCount = document.querySelectorAll("ul.thumbnail-list li").length;
-  const pageNumber = itemCount / 20 + 1;
-  toggleSkeletonList("show");
-  toggleSeeMoreButton("hidden");
+  const pageNumber = itemCount / MOVIE_AMOUNT_IN_PAGE + 1;
+  const seeMoreButton2 = document.querySelector("#seeMore");
+  const skeletonUlElement = document.querySelector(".skeleton-list");
+  toggleVisibility(skeletonUlElement, "show");
+  toggleVisibility(seeMoreButton2, "hidden");
   const searchResult = await __privateMethod(this, _SearchBar_instances, getSearchResult_fn).call(this, pageNumber, query);
-  if (pageNumber < searchResult.total_pages) toggleSeeMoreButton("show");
-  if (searchResult.total_results === 0) toggleNoThumbnail("show");
-  toggleSkeletonList("hidden");
-  searchResult.results.forEach(({ title, poster_path, vote_average }) => {
+  if (searchResult && pageNumber < searchResult.total_pages)
+    toggleVisibility(seeMoreButton2, "show");
+  if (searchResult && searchResult.total_results === 0)
+    toggleVisibility(DOM.$noThumbnail, "show");
+  toggleVisibility(skeletonUlElement, "hidden");
+  searchResult == null ? void 0 : searchResult.results.forEach(({ title, poster_path, vote_average }) => {
     const movieItem = new MovieItem({
       title,
       vote_average,
@@ -224,7 +223,11 @@ renderSearchResult_fn = async function(query) {
   });
 };
 getSearchResult_fn = async function(pageNumber, query) {
-  return await api.getSearchData(pageNumber, query);
+  try {
+    return await api.getSearchData(pageNumber, query);
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
 };
 class SkeletonUl {
   constructor() {
@@ -233,7 +236,7 @@ class SkeletonUl {
   create() {
     const skeletonUlElement = document.createElement("ul");
     skeletonUlElement.classList.add("skeleton-list");
-    Array.from({ length: 20 }).forEach(
+    Array.from({ length: MOVIE_AMOUNT_IN_PAGE }).forEach(
       () => skeletonUlElement.appendChild(__privateMethod(this, _SkeletonUl_instances, createSkeletonLi_fn).call(this))
     );
     return skeletonUlElement;
@@ -277,39 +280,6 @@ _id = new WeakMap();
 _title2 = new WeakMap();
 _onClick = new WeakMap();
 _type = new WeakMap();
-const getMovieData = async () => {
-  const itemCount = document.querySelectorAll("ul.thumbnail-list li").length;
-  const pageNumber = itemCount / 20 + 1;
-  return await api.getMovieData(pageNumber);
-};
-const renderTitleMovie = async () => {
-  const topMovieData = (await getMovieData()).results[0];
-  const movieTitle = topMovieData.title;
-  const movieRate = topMovieData.vote_average;
-  const movieBackdropUrl = BACKDROP_IMG_PREFIX + topMovieData.backdrop_path;
-  const topMovieTitle = document.querySelector(
-    ".top-rated-movie .title"
-  );
-  const topMovieRateValue = document.querySelector(
-    ".top-rated-movie .rate-value"
-  );
-  const backgroundOverlay = document.querySelector(
-    ".background-container .overlay"
-  );
-  topMovieTitle.textContent = movieTitle;
-  topMovieRateValue.textContent = String(movieRate);
-  backgroundOverlay.style.backgroundImage = `url("${movieBackdropUrl}")`;
-};
-const renderMovieData = async () => {
-  toggleSkeletonList("show");
-  const movieData = (await getMovieData()).results;
-  movieData.forEach(({ title, poster_path, vote_average }) => {
-    const movieItem = new MovieItem({ title, vote_average, poster_path });
-    const movieItemElement = movieItem.create();
-    thumbnailList == null ? void 0 : thumbnailList.appendChild(movieItemElement);
-  });
-  toggleSkeletonList("hidden");
-};
 const thumbnailList = document.querySelector("ul.thumbnail-list");
 const mainSection = document.querySelector("main section");
 const skeletonUl = new SkeletonUl();
@@ -330,3 +300,43 @@ logo == null ? void 0 : logo.appendChild(searchBar.create());
 mainSection == null ? void 0 : mainSection.appendChild(skeletonUl.create());
 mainSection == null ? void 0 : mainSection.appendChild(seeMoreButton.create());
 renderMovieData();
+async function getMovieData() {
+  const itemCount = document.querySelectorAll("ul.thumbnail-list li").length;
+  const pageNumber = itemCount / MOVIE_AMOUNT_IN_PAGE + 1;
+  try {
+    return await api.getMovieData(pageNumber);
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
+}
+async function renderTitleMovie() {
+  var _a;
+  const topMovieData = (_a = await getMovieData()) == null ? void 0 : _a.results[0];
+  const movieTitle = topMovieData.title;
+  const movieRate = topMovieData.vote_average;
+  const movieBackdropUrl = BACKDROP_IMG_PREFIX + topMovieData.backdrop_path;
+  const topMovieTitle = document.querySelector(
+    ".top-rated-movie .title"
+  );
+  const topMovieRateValue = document.querySelector(
+    ".top-rated-movie .rate-value"
+  );
+  const backgroundOverlay = document.querySelector(
+    ".background-container .overlay"
+  );
+  topMovieTitle.textContent = movieTitle;
+  topMovieRateValue.textContent = String(movieRate);
+  backgroundOverlay.style.backgroundImage = `url("${movieBackdropUrl}")`;
+}
+async function renderMovieData() {
+  var _a;
+  const skeletonUlElement = document.querySelector(".skeleton-list");
+  toggleVisibility(skeletonUlElement, "show");
+  const movieData = (_a = await getMovieData()) == null ? void 0 : _a.results;
+  movieData.forEach(({ title, poster_path, vote_average }) => {
+    const movieItem = new MovieItem({ title, vote_average, poster_path });
+    const movieItemElement = movieItem.create();
+    thumbnailList == null ? void 0 : thumbnailList.appendChild(movieItemElement);
+  });
+  toggleVisibility(skeletonUlElement, "hidden");
+}
