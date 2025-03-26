@@ -100,16 +100,15 @@ button#seeMore {
 .top-rated-movie > *:not(:last-child) {
   margin-bottom: 8px;
 }
-div.logo {
+.logo {
   font-size: 2rem;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
 }
 .logo > img {
+  object-fit: contain;
   cursor: pointer;
-  position: absolute;
-  left: 0;
-  top: 9px;
 }
 .rate {
   display: flex;

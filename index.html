@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>영화 리뷰</title>
-    <script type="module" crossorigin src="/javascript-movie-review/assets/index-p7lvEVwv.js"></script>
-    <link rel="stylesheet" crossorigin href="/javascript-movie-review/assets/index-lXf7XkiB.css">
+    <script type="module" crossorigin src="/javascript-movie-review/assets/index-DkmSaUgs.js"></script>
+    <link rel="stylesheet" crossorigin href="/javascript-movie-review/assets/index-DIA5WWX1.css">
   </head>
   <body>
     <div id="wrap">
@@ -13,9 +13,22 @@
         <div class="background-container">
           <div class="overlay" aria-hidden="true"></div>
           <div class="top-rated-container">
-            <div class="logo">
+            <h1 class="logo">
               <img src="./images/logo.png" alt="MovieList" />
-            </div>
+              <div class="search-container">
+                <input
+                  type="text"
+                  class="search-bar"
+                  placeholder="검색어를 입력하세요"
+                />
+                <img
+                  id="search"
+                  src="./images/search_button.png"
+                  alt="SearchButton"
+                />
+              </div>
+              <div></div>
+            </h1>
             <div class="top-rated-movie">
               <div class="rate">
                 <img src="./images/star_empty.png" class="star" />
@@ -28,36 +41,16 @@
         </div>
       </header>
       <div class="container">
-        <!-- <ul class="tab">
-          <li>
-            <a href="#">
-              <div class="tab-item selected"><h3>상영 중</h3></div>
-            </a>
-          </li>
-          <li>
-            <a href="#">
-              <div class="tab-item"><h3>인기순</h3></div>
-            </a>
-          </li>
-          <li>
-            <a href="#">
-              <div class="tab-item"><h3>평점순</h3></div>
-            </a>
-          </li>
-          <li>
-            <a href="#">
-              <div class="tab-item"><h3>상영 예정</h3></div>
-            </a>
-          </li>
-        </ul> -->
         <main>
           <section>
-            <h2 class="subTitle">지금 인기 있는 영화</h2>
+            <h2 class="subtitle"></h2>
             <ul class="thumbnail-list"></ul>
             <div class="no-thumbnail hidden">
               <img src="./images/no_result_icon.png" alt="결과없음" />
               <h2>검색 결과가 없습니다.</h2>
             </div>
+            <ul class="skeleton-list hidden"></ul>
+            <button id="seeMore" class="primary">더보기</button>
           </section>
         </main>
       </div>
