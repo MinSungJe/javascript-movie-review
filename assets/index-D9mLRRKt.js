@@ -240,8 +240,11 @@ const Modal = {
     });
     $modalCloseButton.addEventListener("click", () => this.hidden());
   },
-  setContent(element) {
+  reset() {
     $modalContainer.replaceChildren();
+  },
+  setContent(element) {
+    this.reset();
     $modalContainer.appendChild(element);
   },
   show() {
@@ -342,14 +345,15 @@ const ModalDetail = {
     rate,
     detail
   }) {
-    const modalContainerElement = document.createElement("div");
-    modalContainerElement.classList.add("modal-container");
+    const modalDetailElement = document.createElement("div");
+    modalDetailElement.classList.add("modal-detail");
     const content = (
       /*html*/
       `
         <div class="modal-image">
             <img
             src=${DETAIL_POSTER_PREFIX + posterPath}
+            onerror="this.src='./images/null_image.png'"
             />
         </div>
         <div class="modal-description">
@@ -374,14 +378,42 @@ const ModalDetail = {
         </div>
     `
     );
-    modalContainerElement.insertAdjacentHTML("beforeend", content);
-    this.createMyRate(modalContainerElement, id);
-    return modalContainerElement;
+    modalDetailElement.insertAdjacentHTML("beforeend", content);
+    this.createMyRate(modalDetailElement, id);
+    return modalDetailElement;
   },
   createMyRate(modalContainerElement, movieId) {
     var _a;
     const myRateSelect = MyRateSelect.create(movieId);
     (_a = modalContainerElement.querySelector(".my-rate-container")) == null ? void 0 : _a.appendChild(myRateSelect);
+  }
+};
+const $modalLoadingSpinner = $(".modal-loading-spinner");
+const ModalLoadingSpinner = {
+  show() {
+    toggleDisplay($modalLoadingSpinner, "show");
+  },
+  hidden() {
+    toggleDisplay($modalLoadingSpinner, "hidden");
+  }
+};
+const SkeletonDetail = {
+  create() {
+    const skeletonDetailElement = document.createElement("div");
+    skeletonDetailElement.classList.add("modal-detail");
+    const content = (
+      /*html*/
+      `
+        <div class="modal-image">
+            <div class="skeleton-poster"></div>
+        </div>
+        <div class="modal-description">
+            
+        </div>
+    `
+    );
+    skeletonDetailElement.insertAdjacentHTML("beforeend", content);
+    return skeletonDetailElement;
   }
 };
 const MovieItem = {
@@ -524,24 +556,7 @@ addEventListener("load", async () => {
     SearchInput.onEnterKeydown = async () => search(observer);
     Subtitle.init();
     MovieList.init(movies);
-    MovieItem.onClickItem = async (e) => {
-      const clickedMovieItem = e.currentTarget;
-      if (!clickedMovieItem.dataset.id) return;
-      Modal.show();
-      const movieDetail = await fetchMovieDetail(clickedMovieItem.dataset.id);
-      if (!movieDetail) throw new Error(ErrorMessage.FETCH_MOVIE_DETAIL);
-      Modal.setContent(
-        ModalDetail.create({
-          id: movieDetail.id,
-          posterPath: movieDetail.posterPath,
-          category: movieDetail.category,
-          title: movieDetail.title,
-          releaseYear: movieDetail.releaseYear,
-          rate: movieDetail.rate,
-          detail: movieDetail.detail
-        })
-      );
-    };
+    MovieItem.onClickItem = (e) => showMovieDetailModal(e);
     Skeleton.init();
     ScrollObserver.intersect = () => seeMorePopularMovies(observer);
     ScrollObserver.on(observer);
@@ -595,4 +610,26 @@ async function seeMoreSearchMovies(query, observer) {
   if (!canMore) ScrollObserver.off(observer);
   MovieList.add(movies);
   Skeleton.hidden();
+}
+async function showMovieDetailModal(e) {
+  const clickedMovieItem = e.currentTarget;
+  if (!clickedMovieItem.dataset.id) return;
+  Modal.show();
+  ModalLoadingSpinner.show();
+  Modal.reset();
+  Modal.setContent(SkeletonDetail.create());
+  const movieDetail = await fetchMovieDetail(clickedMovieItem.dataset.id);
+  if (!movieDetail) throw new Error(ErrorMessage.FETCH_MOVIE_DETAIL);
+  ModalLoadingSpinner.hidden();
+  Modal.setContent(
+    ModalDetail.create({
+      id: movieDetail.id,
+      posterPath: movieDetail.posterPath,
+      category: movieDetail.category,
+      title: movieDetail.title,
+      releaseYear: movieDetail.releaseYear,
+      rate: movieDetail.rate,
+      detail: movieDetail.detail
+    })
+  );
 }
