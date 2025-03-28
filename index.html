@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>영화 리뷰</title>
-    <script type="module" crossorigin src="/javascript-movie-review/assets/index-DkmSaUgs.js"></script>
-    <link rel="stylesheet" crossorigin href="/javascript-movie-review/assets/index-DIA5WWX1.css">
+    <script type="module" crossorigin src="/javascript-movie-review/assets/index-BIYfCcPv.js"></script>
+    <link rel="stylesheet" crossorigin href="/javascript-movie-review/assets/index-DLAG_MkY.css">
   </head>
   <body>
     <div id="wrap">
@@ -50,7 +50,7 @@
               <h2>검색 결과가 없습니다.</h2>
             </div>
             <ul class="skeleton-list hidden"></ul>
-            <button id="seeMore" class="primary">더보기</button>
+            <div class="observer-target"></div>
           </section>
         </main>
       </div>
@@ -59,6 +59,15 @@
         <p>&copy; 우아한테크코스 All Rights Reserved.</p>
         <p><img src="./images/woowacourse_logo.png" width="180" /></p>
       </footer>
+
+      <div class="modal-background" id="modalBackground">
+        <div class="modal">
+          <button class="close-modal" id="closeModal">
+            <img src="./images/modal_button_close.png" />
+          </button>
+          <div class="modal-container"></div>
+        </div>
+      </div>
     </div>
 
   </body>

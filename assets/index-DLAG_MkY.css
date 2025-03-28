@@ -11,6 +11,12 @@
   --color-ffffff: #ffffff;
   --color-242a32: #242a32;
 }
+:root {
+  --screen-large-laptop: 1440px;
+  --screen-small-laptop: 1024px;
+  --screen-tablet: 768px;
+  --screen-mobile: 425px;
+}
 * {
   box-sizing: border-box;
 }
@@ -50,7 +56,7 @@ button#seeMore {
   width: 100%;
 }
 #wrap {
-  min-width: 1440px;
+  min-width: var(--screen-mobile);
   background-color: var(--color-bluegray-100);
 }
 #wrap h2 {
@@ -83,6 +89,7 @@ button#seeMore {
 
   background-size: cover;
   background-position: center;
+  filter: brightness(0.5);
   width: 100%;
   height: 100%;
   z-index: 1;
@@ -98,7 +105,7 @@ button#seeMore {
   margin-top: 64px;
 }
 .top-rated-movie > *:not(:last-child) {
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 .logo {
   font-size: 2rem;
@@ -128,6 +135,9 @@ span.rate-value {
   font-size: 3rem;
   font-weight: bold;
 }
+.subtitle {
+  font-weight: bold;
+}
 footer.footer {
   min-height: 180px;
   background-color: var(--color-bluegray-80);
@@ -139,6 +149,19 @@ footer.footer {
 }
 footer.footer p:not(:last-child) {
   margin-bottom: 8px;
+}
+.observer-target {
+  position: relative;
+  bottom: 450px;
+}
+@media screen and (max-width: 1439px) {
+  .logo {
+    flex-direction: column;
+  }
+
+  .logo > img {
+    margin-bottom: 10px;
+  }
 }
 /* modal.css */
 body.modal-open {
@@ -158,9 +181,7 @@ body.modal-open {
   z-index: 10;
   visibility: hidden; /* 모달이 기본적으로 보이지 않도록 설정 */
   opacity: 0;
-  transition:
-    opacity 0.3s ease,
-    visibility 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 .modal-background.active {
   visibility: visible;
@@ -173,7 +194,8 @@ body.modal-open {
   color: white;
   z-index: 2;
   position: relative;
-  width: 1000px;
+  min-width: 425px;
+  max-width: 1000px;
 }
 .close-modal {
   position: absolute;
@@ -214,6 +236,72 @@ body.modal-open {
 .detail {
   max-height: 430px;
   overflow-y: auto;
+}
+.rate-container {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.my-rate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.my-rate-description {
+  font-weight: bold;
+}
+.my-rate-score {
+  color: var(--color-bluegray-30);
+}
+.star-container > img {
+  cursor: pointer;
+}
+@media screen and (max-width: 1023px) {
+  .modal {
+    width: 100vw;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .modal-background {
+    align-items: end;
+  }
+
+  .modal-container {
+    display: block;
+  }
+
+  .modal-image {
+    text-align: center;
+  }
+
+  .modal-image img {
+    margin: auto;
+    width: 200px;
+    height: 300px;
+  }
+
+  .modal-description {
+    margin-left: 0;
+  }
+
+  .modal-description h2 {
+    margin-bottom: 8px !important;
+    text-align: center;
+  }
+
+  .modal-description .category {
+    text-align: center;
+  }
+
+  .modal-description .rate-container {
+    justify-content: center;
+  }
+}
+@media screen and (max-width: 767px) {
+  .modal-image img {
+    display: none;
+  }
 }
 /* http://meyerweb.com/eric/tools/css/reset/
    v2.0 | 20110126
@@ -376,9 +464,18 @@ table {
   gap: 70px;
 }
 .thumbnail {
+  cursor: pointer;
   width: 200px;
   height: 300px;
   border-radius: 8px;
+  background: linear-gradient(
+    140deg,
+    var(--color-bluegray-90) 40%,
+    var(--color-bluegray-80) 50%,
+    var(--color-bluegray-90) 60%
+  );
+  background-size: 300%;
+  animation: glow 3s infinite linear;
 }
 .item {
   user-select: none;
@@ -409,6 +506,30 @@ p.rate > span {
 }
 .hidden {
   display: none !important;
+}
+@media screen and (max-width: 1439px) {
+  .thumbnail-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(4, 200px);
+    gap: 50px;
+  }
+}
+@media screen and (max-width: 1023px) {
+  .thumbnail-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 40px;
+  }
+}
+@media screen and (max-width: 767px) {
+  .thumbnail-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(1, 200px);
+    gap: 40px;
+  }
 }
 .search-container {
   display: flex;
@@ -441,22 +562,19 @@ p.rate > span {
 #search {
   cursor: pointer;
 }
+@media screen and (max-width: 767px) {
+  .search-container {
+    width: 340px;
+  }
+}
 .skeleton-list {
   margin: 0 auto 56px;
   display: grid;
   grid-template-columns: repeat(5, 200px);
   gap: 70px;
 }
-.thumbnail {
+.skeleton-list .thumbnail {
   cursor: auto;
-  background: linear-gradient(
-    140deg,
-    var(--color-bluegray-90) 40%,
-    var(--color-bluegray-80) 50%,
-    var(--color-bluegray-90) 60%
-  );
-  background-size: 300%;
-  animation: glow 3s infinite linear;
 }
 @keyframes glow {
   0% {
@@ -465,5 +583,29 @@ p.rate > span {
 
   100% {
     background-position: 300%;
+  }
+}
+@media screen and (max-width: 1439px) {
+  .skeleton-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(4, 200px);
+    gap: 50px;
+  }
+}
+@media screen and (max-width: 1023px) {
+  .skeleton-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 40px;
+  }
+}
+@media screen and (max-width: 767px) {
+  .skeleton-list {
+    margin: 0 auto 56px;
+    display: grid;
+    grid-template-columns: repeat(1, 200px);
+    gap: 40px;
   }
 }
