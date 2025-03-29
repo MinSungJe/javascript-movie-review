@@ -177,6 +177,9 @@ const $overlay = $(".overlay");
 const $topRatedMovie = $(".top-rated-movie");
 const $rate = $(".rate-value");
 const $headerTitle = $(".top-rated-movie .title");
+const $headerDetailButton = $(
+  ".top-rated-movie .detail"
+);
 const $logo = $(".logo > img");
 const $searchInput = $(".search-bar");
 const $searchButton = $("img#search");
@@ -186,6 +189,11 @@ const Header = {
     this.setTitle({ id, posterPath, rate, title });
   },
   setTitle({ id, posterPath, rate, title }) {
+    $headerDetailButton.dataset.id = id.toString();
+    $headerDetailButton.addEventListener(
+      "click",
+      (e) => this.onDetailButtonClick(e)
+    );
     $overlay.style.backgroundImage = `url(${BACKDROP_IMG_PREFIX + posterPath})`;
     $rate.textContent = rate.toFixed(1);
     $headerTitle.textContent = title;
@@ -194,6 +202,9 @@ const Header = {
     $backgroundContainer.style.height = "auto";
     toggleDisplay($overlay, "hidden");
     toggleDisplay($topRatedMovie, "hidden");
+  },
+  onDetailButtonClick(event) {
+    console.log(event.target, "onDetailButtonClick 기능 미구현");
   }
 };
 const SearchInput = {
@@ -222,10 +233,11 @@ const SearchInput = {
   }
 };
 const setPageScroll = (option) => {
-  if (option) document.body.style.overflow = "auto";
-  else document.body.style.overflow = "hidden";
+  if (option) document.body.style.overflowY = "auto";
+  else document.body.style.overflowY = "hidden";
 };
-const $modal = $("#modalBackground");
+const $modalBackground = $("#modalBackground");
+const $modal = $(".modal");
 const $modalCloseButton = $("#closeModal");
 const $modalContainer = $(".modal-container");
 const escapeEventListener = (e) => {
@@ -235,8 +247,8 @@ const escapeEventListener = (e) => {
 };
 const Modal = {
   init() {
-    $modal.addEventListener("click", (e) => {
-      if (e.target === $modal) this.hidden();
+    $modalBackground.addEventListener("click", (e) => {
+      if (e.target === $modalBackground) this.hidden();
     });
     $modalCloseButton.addEventListener("click", () => this.hidden());
   },
@@ -248,14 +260,18 @@ const Modal = {
     $modalContainer.appendChild(element);
   },
   show() {
-    toggleVisibility($modal, "show");
+    toggleVisibility($modalBackground, "show");
     setPageScroll(false);
     addEventListener("keydown", escapeEventListener);
+    console.log(window);
+    if (window.innerWidth < 1024)
+      $modal.style.animation = "modal-up 0.5s forwards";
   },
   hidden() {
-    toggleVisibility($modal, "hidden");
+    toggleVisibility($modalBackground, "hidden");
     setPageScroll(true);
     removeEventListener("keydown", escapeEventListener);
+    if (window.innerWidth < 1024) $modal.style.animation = "none";
   }
 };
 const MOVIE_RATE_LIST_KEY = "movieRateList";
@@ -352,6 +368,7 @@ const ModalDetail = {
       `
         <div class="modal-image">
             <img
+            class="skeleton-poster"
             src=${DETAIL_POSTER_PREFIX + posterPath}
             onerror="this.src='./images/null_image.png'"
             />
@@ -395,25 +412,6 @@ const ModalLoadingSpinner = {
   },
   hidden() {
     toggleDisplay($modalLoadingSpinner, "hidden");
-  }
-};
-const SkeletonDetail = {
-  create() {
-    const skeletonDetailElement = document.createElement("div");
-    skeletonDetailElement.classList.add("modal-detail");
-    const content = (
-      /*html*/
-      `
-        <div class="modal-image">
-            <div class="skeleton-poster"></div>
-        </div>
-        <div class="modal-description">
-            
-        </div>
-    `
-    );
-    skeletonDetailElement.insertAdjacentHTML("beforeend", content);
-    return skeletonDetailElement;
   }
 };
 const MovieItem = {
@@ -545,22 +543,23 @@ addEventListener("load", async () => {
       LocalStorage.setJSON(MOVIE_RATE_LIST_KEY, {});
     const { movies } = await getPopularMovieList();
     const observer = ScrollObserver.get();
+    Modal.init();
     Header.init({
       id: movies[0].id,
       title: movies[0].title,
       posterPath: movies[0].backdropPath || "",
       rate: movies[0].rate
     });
+    Header.onDetailButtonClick = (e) => showMovieDetailModal(e);
     SearchInput.init();
-    SearchInput.onButtonClick = async () => search(observer);
-    SearchInput.onEnterKeydown = async () => search(observer);
+    SearchInput.onButtonClick = () => search(observer);
+    SearchInput.onEnterKeydown = () => search(observer);
     Subtitle.init();
     MovieList.init(movies);
     MovieItem.onClickItem = (e) => showMovieDetailModal(e);
     Skeleton.init();
     ScrollObserver.intersect = () => seeMorePopularMovies(observer);
     ScrollObserver.on(observer);
-    Modal.init();
   } catch (error) {
     if (error instanceof Error) alert(error.message);
   }
@@ -617,7 +616,6 @@ async function showMovieDetailModal(e) {
   Modal.show();
   ModalLoadingSpinner.show();
   Modal.reset();
-  Modal.setContent(SkeletonDetail.create());
   const movieDetail = await fetchMovieDetail(clickedMovieItem.dataset.id);
   if (!movieDetail) throw new Error(ErrorMessage.FETCH_MOVIE_DETAIL);
   ModalLoadingSpinner.hidden();
