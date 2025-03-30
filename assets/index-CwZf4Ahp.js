@@ -479,10 +479,10 @@ const ScrollObserver = {
     const observer = new IntersectionObserver(onIntersect, option);
     return observer;
   },
-  on(observer) {
+  turnOn(observer) {
     observer.observe($observerTarget);
   },
-  off(observer) {
+  turnOff(observer) {
     observer.unobserve($observerTarget);
   },
   intersect() {
@@ -549,7 +549,7 @@ addEventListener("load", async () => {
     MovieItem.onClickItem = (e) => showMovieDetailModal(e);
     Skeleton.init();
     ScrollObserver.intersect = () => seeMorePopularMovies(observer);
-    ScrollObserver.on(observer);
+    ScrollObserver.turnOn(observer);
   } catch (error) {
     if (error instanceof Error) alert(error.message);
   }
@@ -578,10 +578,10 @@ async function getSearchMovieList(query) {
 }
 async function seeMorePopularMovies(observer) {
   Skeleton.show();
-  ScrollObserver.on(observer);
+  ScrollObserver.turnOn(observer);
   try {
     const { movies, canMore } = await getPopularMovieList();
-    if (!canMore) ScrollObserver.off(observer);
+    if (!canMore) ScrollObserver.turnOff(observer);
     MovieList.add(movies);
     Skeleton.hidden();
   } catch (error) {
@@ -593,7 +593,7 @@ async function search(observer) {
   NoThumbnail.hidden();
   MovieList.init([]);
   pageNumber = 1;
-  ScrollObserver.on(observer);
+  ScrollObserver.turnOn(observer);
   Skeleton.show();
   ScrollObserver.intersect = () => seeMoreSearchMovies(query, observer);
   const query = SearchInput.getSearchValue();
@@ -602,7 +602,7 @@ async function search(observer) {
     Subtitle.set(`"${query}" 검색 결과`);
     Skeleton.hidden();
     MovieList.set(movies);
-    if (!canMore) ScrollObserver.off(observer);
+    if (!canMore) ScrollObserver.turnOff(observer);
     if (movies.length === 0) {
       NoThumbnail.show();
       return;
@@ -615,7 +615,7 @@ async function seeMoreSearchMovies(query, observer) {
   Skeleton.show();
   try {
     const { movies, canMore } = await getSearchMovieList(query);
-    if (!canMore) ScrollObserver.off(observer);
+    if (!canMore) ScrollObserver.turnOff(observer);
     MovieList.add(movies);
     Skeleton.hidden();
   } catch (error) {
