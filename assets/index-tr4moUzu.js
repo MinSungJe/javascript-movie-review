@@ -263,7 +263,6 @@ const Modal = {
     toggleVisibility($modalBackground, "show");
     setPageScroll(false);
     addEventListener("keydown", escapeEventListener);
-    console.log(window);
     if (window.innerWidth < 1024)
       $modal.style.animation = "modal-up 0.5s forwards";
   },
@@ -370,7 +369,7 @@ const ModalDetail = {
             <img
             class="skeleton-poster"
             src=${DETAIL_POSTER_PREFIX + posterPath}
-            onerror="this.src='./images/null_image.png'"
+            onerror="this.onerror=null; this.src='./images/null_image.png'"
             />
         </div>
         <div class="modal-description">
@@ -426,7 +425,7 @@ const MovieItem = {
           <img
           class="thumbnail"
           src=${POSTER_IMG_PREFIX + posterPath}
-          onerror="this.src='./images/null_image.png'"
+          onerror="this.onerror=null; this.src='./images/null_image.png'"
           alt=${title}
           />
           <div class="item-desc">
@@ -449,12 +448,8 @@ const MovieItem = {
 };
 const $movieListContainer = $("ul.thumbnail-list");
 const MovieList = {
-  async init(movieList) {
-    try {
-      this.set(movieList);
-    } catch (error) {
-      if (error instanceof Error) alert(error.message);
-    }
+  init(movieList) {
+    this.set(movieList);
   },
   set(movieList) {
     $movieListContainer.replaceChildren();
@@ -565,24 +560,38 @@ addEventListener("load", async () => {
   }
 });
 async function getPopularMovieList() {
-  const movieList = await fetchPopularMovies(pageNumber);
-  pageNumber += 1;
-  if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
-  return movieList;
+  try {
+    const movieList = await fetchPopularMovies(pageNumber);
+    pageNumber += 1;
+    if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
+    return movieList;
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+    return { movies: [], canMore: false };
+  }
 }
 async function getSearchMovieList(query) {
-  const movieList = await fetchSearchMovies(query, pageNumber);
-  pageNumber += 1;
-  if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
-  return movieList;
+  try {
+    const movieList = await fetchSearchMovies(query, pageNumber);
+    pageNumber += 1;
+    if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
+    return movieList;
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+    return { movies: [], canMore: false };
+  }
 }
 async function seeMorePopularMovies(observer) {
   Skeleton.show();
   ScrollObserver.on(observer);
-  const { movies, canMore } = await getPopularMovieList();
-  if (!canMore) ScrollObserver.off(observer);
-  MovieList.add(movies);
-  Skeleton.hidden();
+  try {
+    const { movies, canMore } = await getPopularMovieList();
+    if (!canMore) ScrollObserver.off(observer);
+    MovieList.add(movies);
+    Skeleton.hidden();
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
 }
 async function search(observer) {
   Header.setSearchMode();
@@ -591,24 +600,32 @@ async function search(observer) {
   pageNumber = 1;
   ScrollObserver.on(observer);
   Skeleton.show();
-  const query = SearchInput.getSearchValue();
-  const { movies, canMore } = await getSearchMovieList(query);
-  Subtitle.set(`"${query}" 검색 결과`);
-  Skeleton.hidden();
-  MovieList.set(movies);
-  if (!canMore) ScrollObserver.off(observer);
-  if (movies.length === 0) {
-    NoThumbnail.show();
-    return;
-  }
   ScrollObserver.intersect = () => seeMoreSearchMovies(query, observer);
+  const query = SearchInput.getSearchValue();
+  try {
+    const { movies, canMore } = await getSearchMovieList(query);
+    Subtitle.set(`"${query}" 검색 결과`);
+    Skeleton.hidden();
+    MovieList.set(movies);
+    if (!canMore) ScrollObserver.off(observer);
+    if (movies.length === 0) {
+      NoThumbnail.show();
+      return;
+    }
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
 }
 async function seeMoreSearchMovies(query, observer) {
   Skeleton.show();
-  const { movies, canMore } = await getSearchMovieList(query);
-  if (!canMore) ScrollObserver.off(observer);
-  MovieList.add(movies);
-  Skeleton.hidden();
+  try {
+    const { movies, canMore } = await getSearchMovieList(query);
+    if (!canMore) ScrollObserver.off(observer);
+    MovieList.add(movies);
+    Skeleton.hidden();
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
 }
 async function showMovieDetailModal(e) {
   const clickedMovieItem = e.currentTarget;
@@ -616,18 +633,22 @@ async function showMovieDetailModal(e) {
   Modal.show();
   ModalLoadingSpinner.show();
   Modal.reset();
-  const movieDetail = await fetchMovieDetail(clickedMovieItem.dataset.id);
-  if (!movieDetail) throw new Error(ErrorMessage.FETCH_MOVIE_DETAIL);
-  ModalLoadingSpinner.hidden();
-  Modal.setContent(
-    ModalDetail.create({
-      id: movieDetail.id,
-      posterPath: movieDetail.posterPath,
-      category: movieDetail.category,
-      title: movieDetail.title,
-      releaseYear: movieDetail.releaseYear,
-      rate: movieDetail.rate,
-      detail: movieDetail.detail
-    })
-  );
+  try {
+    const movieDetail = await fetchMovieDetail(clickedMovieItem.dataset.id);
+    if (!movieDetail) throw new Error(ErrorMessage.FETCH_MOVIE_DETAIL);
+    ModalLoadingSpinner.hidden();
+    Modal.setContent(
+      ModalDetail.create({
+        id: movieDetail.id,
+        posterPath: movieDetail.posterPath,
+        category: movieDetail.category,
+        title: movieDetail.title,
+        releaseYear: movieDetail.releaseYear,
+        rate: movieDetail.rate,
+        detail: movieDetail.detail
+      })
+    );
+  } catch (error) {
+    if (error instanceof Error) alert(error.message);
+  }
 }
