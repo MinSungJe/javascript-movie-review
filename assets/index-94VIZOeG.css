@@ -15,7 +15,7 @@
   --screen-large-laptop: 1440px;
   --screen-small-laptop: 1024px;
   --screen-tablet: 768px;
-  --screen-mobile: 425px;
+  --screen-mobile: 320px;
 }
 * {
   box-sizing: border-box;
@@ -196,7 +196,7 @@ body.modal-open {
   color: white;
   z-index: 2;
   position: relative;
-  min-width: 425px;
+  min-width: var(--screen-mobile);
   width: 1000px;
   height: 630px;
   overflow-y: auto;
