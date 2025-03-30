@@ -204,7 +204,6 @@ const Header = {
     toggleDisplay($topRatedMovie, "hidden");
   },
   onDetailButtonClick(event) {
-    console.log(event.target, "onDetailButtonClick 기능 미구현");
   }
 };
 const SearchInput = {
@@ -222,14 +221,12 @@ const SearchInput = {
     return $searchInput.value;
   },
   onButtonClick(event) {
-    console.log(event.target, "onButtonClick 기능 미구현");
   },
   checkEnterEventHandler(event) {
     if (event.key !== "Enter") return;
     this.onEnterKeydown(event);
   },
   onEnterKeydown(event) {
-    console.log(event.target, "onEnterKeydown 기능 미구현");
   }
 };
 const setPageScroll = (option) => {
@@ -443,7 +440,6 @@ const MovieItem = {
     return movieItemElement;
   },
   onClickItem(event) {
-    console.log(event.currentTarget, "onButtonClick 기능 미구현");
   }
 };
 const $movieListContainer = $("ul.thumbnail-list");
@@ -490,7 +486,6 @@ const ScrollObserver = {
     observer.unobserve($observerTarget);
   },
   intersect() {
-    console.log("ScrollObserver 감지");
   }
 };
 const $skeletonList = $(".skeleton-list");
