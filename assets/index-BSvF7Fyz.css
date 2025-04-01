@@ -515,9 +515,9 @@ q:after {
 }.skeleton-poster {
   width: 380px;
   height: 570px;
-}.skeleton-list .thumbnail {
+}.skeleton-list .item {
   cursor: auto;
-}.thumbnail,
+}.item-img,
 .modal-image > .skeleton-poster {
   background: linear-gradient(140deg, var(--color-bluegray-90) 40%, var(--color-bluegray-80) 50%, var(--color-bluegray-90) 60%);
   background-size: 300%;
