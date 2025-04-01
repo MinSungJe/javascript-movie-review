@@ -36,6 +36,7 @@
   }
 })();
 const ErrorMessage = Object.freeze({
+  UNKNOWN: "알 수 없는 오류가 발생했습니다.",
   API_CLIENT: "통신 과정에서 예기치 못한 오류가 발생했습니다.",
   FETCH_POPULAR_MOVIES: "영화 정보를 가져오는 중 문제가 발생했습니다.",
   FETCH_SEARCH_MOVIES: "검색 결과를 가져오는 중 문제가 발생했습니다.",
@@ -77,17 +78,17 @@ async function fetchMovieDetail(id) {
     language: "ko-KR"
   });
   try {
-    const TMDB_movieDetail = await ApiClient.get(
+    const TMDBMovieDetail = await ApiClient.get(
       `/movie/${id}?` + params.toString()
     );
     const movieDetail = {
-      id: TMDB_movieDetail.id,
-      posterPath: TMDB_movieDetail.poster_path,
-      title: TMDB_movieDetail.title,
-      releaseYear: TMDB_movieDetail.release_date.split("-")[0],
-      category: TMDB_movieDetail.genres.map((genre) => genre.name),
-      rate: TMDB_movieDetail.vote_average,
-      detail: TMDB_movieDetail.overview
+      id: TMDBMovieDetail.id,
+      posterPath: TMDBMovieDetail.poster_path,
+      title: TMDBMovieDetail.title,
+      releaseYear: TMDBMovieDetail.release_date.split("-")[0],
+      category: TMDBMovieDetail.genres.map((genre) => genre.name),
+      rate: TMDBMovieDetail.vote_average,
+      detail: TMDBMovieDetail.overview
     };
     return movieDetail;
   } catch (error) {
@@ -150,13 +151,13 @@ async function fetchSearchMovies(query, pageNumber2) {
       throw new Error(ErrorMessage.FETCH_SEARCH_MOVIES || error.message);
   }
 }
-const toggleDisplay = (element, option) => {
-  if (option === "show") element.classList.remove("hidden");
-  if (option === "hidden") element.classList.add("hidden");
+const toggleDisplay = (element, isVisible) => {
+  if (isVisible) element.classList.remove("hidden");
+  else element.classList.add("hidden");
 };
-const toggleVisibility = (element, option) => {
-  if (option === "show") element.classList.add("active");
-  if (option === "hidden") element.classList.remove("active");
+const toggleVisibility = (element, isVisible) => {
+  if (isVisible) element.classList.add("active");
+  else element.classList.remove("active");
 };
 const $ = (selector, ancestor = document) => {
   const element = ancestor.querySelector(selector);
@@ -200,8 +201,8 @@ const Header = {
   },
   setSearchMode() {
     $backgroundContainer.style.height = "auto";
-    toggleDisplay($overlay, "hidden");
-    toggleDisplay($topRatedMovie, "hidden");
+    toggleDisplay($overlay, false);
+    toggleDisplay($topRatedMovie, false);
   },
   onDetailButtonClick(event) {
   }
@@ -229,8 +230,8 @@ const SearchInput = {
   onEnterKeydown(event) {
   }
 };
-const setPageScroll = (option) => {
-  if (option) document.body.style.overflowY = "auto";
+const setPageScroll = (isVisible) => {
+  if (isVisible) document.body.style.overflowY = "auto";
   else document.body.style.overflowY = "hidden";
 };
 const $modalBackground = $("#modalBackground");
@@ -257,27 +258,27 @@ const Modal = {
     $modalContainer.appendChild(element);
   },
   show() {
-    toggleVisibility($modalBackground, "show");
+    toggleVisibility($modalBackground, true);
     setPageScroll(false);
     addEventListener("keydown", escapeEventListener);
     if (window.innerWidth < 1024)
       $modal.style.animation = "modal-up 0.5s forwards";
   },
   hidden() {
-    toggleVisibility($modalBackground, "hidden");
+    toggleVisibility($modalBackground, false);
     setPageScroll(true);
     removeEventListener("keydown", escapeEventListener);
     if (window.innerWidth < 1024) $modal.style.animation = "none";
   }
 };
 const MOVIE_RATE_LIST_KEY = "movieRateList";
-const MOVIE_RATE_COMMENT = Object.freeze({
+const MOVIE_RATE_COMMENT = {
   2: "최악이예요",
   4: "별로예요",
   6: "보통이에요",
   8: "재미있어요",
   10: "명작이에요"
-});
+};
 const MOVIE_NO_RATE_COMMENT = "";
 const MOVIE_NO_DESCRIPTION = "이런! 아직 영화의 상세정보가 영화 정보 사이트에 등록되지 않았습니다. 🥲";
 const CATEGORY_SEPARATOR = ", ";
@@ -404,10 +405,10 @@ const ModalDetail = {
 const $modalLoadingSpinner = $(".modal-loading-spinner");
 const ModalLoadingSpinner = {
   show() {
-    toggleDisplay($modalLoadingSpinner, "show");
+    toggleDisplay($modalLoadingSpinner, true);
   },
   hidden() {
-    toggleDisplay($modalLoadingSpinner, "hidden");
+    toggleDisplay($modalLoadingSpinner, false);
   }
 };
 const MovieItem = {
@@ -419,12 +420,14 @@ const MovieItem = {
       /*html*/
       `
       <div class="item">
-          <img
-          class="thumbnail"
-          src=${POSTER_IMG_PREFIX + posterPath}
-          onerror="this.onerror=null; this.src='./images/null_image.png'"
-          alt=${title}
-          />
+          <div class="item-img">
+            <img
+            class="thumbnail"
+            src=${POSTER_IMG_PREFIX + posterPath}
+            onerror="this.onerror=null; this.src='./images/null_image.png'"
+            alt=${title}
+            />
+          </div>
           <div class="item-desc">
           <p class="rate">
               <img src="./images/star_empty.png" class="star" /><span
@@ -458,10 +461,10 @@ const MovieList = {
 const $noThumbnail = $(".no-thumbnail");
 const NoThumbnail = {
   show() {
-    toggleDisplay($noThumbnail, "show");
+    toggleDisplay($noThumbnail, true);
   },
   hidden() {
-    toggleDisplay($noThumbnail, "hidden");
+    toggleDisplay($noThumbnail, false);
   }
 };
 const $observerTarget = $(".observer-target");
@@ -511,10 +514,10 @@ const Skeleton = {
     return skeletonItemElement;
   },
   show() {
-    toggleDisplay($skeletonList, "show");
+    toggleDisplay($skeletonList, true);
   },
   hidden() {
-    toggleDisplay($skeletonList, "hidden");
+    toggleDisplay($skeletonList, false);
   }
 };
 const $subtitle = $(".subtitle");
@@ -525,6 +528,10 @@ const Subtitle = {
   set(text) {
     $subtitle.textContent = text;
   }
+};
+const handleError = (error, customMessage) => {
+  if (error instanceof Error) alert(error.message);
+  else alert(ErrorMessage.UNKNOWN);
 };
 let pageNumber = 1;
 addEventListener("load", async () => {
@@ -551,7 +558,7 @@ addEventListener("load", async () => {
     ScrollObserver.intersect = () => seeMorePopularMovies(observer);
     ScrollObserver.turnOn(observer);
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
   }
 });
 async function getPopularMovieList() {
@@ -561,7 +568,7 @@ async function getPopularMovieList() {
     if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
     return movieList;
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
     return { movies: [], canMore: false };
   }
 }
@@ -572,7 +579,7 @@ async function getSearchMovieList(query) {
     if (!movieList) throw new Error(ErrorMessage.FETCH_POPULAR_MOVIES);
     return movieList;
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
     return { movies: [], canMore: false };
   }
 }
@@ -585,7 +592,7 @@ async function seeMorePopularMovies(observer) {
     MovieList.add(movies);
     Skeleton.hidden();
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
   }
 }
 async function search(observer) {
@@ -608,7 +615,7 @@ async function search(observer) {
       return;
     }
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
   }
 }
 async function seeMoreSearchMovies(query, observer) {
@@ -619,7 +626,7 @@ async function seeMoreSearchMovies(query, observer) {
     MovieList.add(movies);
     Skeleton.hidden();
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
   }
 }
 async function showMovieDetailModal(e) {
@@ -644,6 +651,6 @@ async function showMovieDetailModal(e) {
       })
     );
   } catch (error) {
-    if (error instanceof Error) alert(error.message);
+    handleError(error);
   }
 }
